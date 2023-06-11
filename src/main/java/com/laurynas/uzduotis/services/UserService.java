@@ -40,11 +40,19 @@ public class UserService {
         if (userRepository.findByUsername(username) != null) {
             throw new StatusException(HttpStatus.CONFLICT, "Username already exists.");
         }
+        if(username.length() > 20) {
+            throw new StatusException(HttpStatus.PAYLOAD_TOO_LARGE, "Username length exceeds 20 character limit.");
+        }
+        if(password.length() > 20) {
+            throw new StatusException(HttpStatus.PAYLOAD_TOO_LARGE, "Password length exceeds 20 character limit.");
+        }
 
         UserModel user = new UserModel();
         user.setUsername(username);
         user.setPassword(password);
         user.setAdmin(isAdmin);
+
+        userRepository.save(user);
     }
 
     public void deleteUser(String username) throws StatusException {

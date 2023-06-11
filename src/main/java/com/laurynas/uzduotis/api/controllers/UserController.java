@@ -70,6 +70,15 @@ public class UserController {
                                     implementation = SimpleResponseDTO.class
                             )
                     )
+            ),
+            @ApiResponse(
+                    responseCode = "413",
+                    description = "username or password length exceeds 20 character limit",
+                    content = @Content(
+                            schema = @Schema(
+                                    implementation = SimpleResponseDTO.class
+                            )
+                    )
             )
     })
     @PostMapping
@@ -126,6 +135,15 @@ public class UserController {
                                     implementation = SimpleResponseDTO.class
                             )
                     )
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "User not found",
+                    content = @Content(
+                            schema = @Schema(
+                                    implementation = SimpleResponseDTO.class
+                            )
+                    )
             )
     })
     @DeleteMapping
@@ -165,7 +183,17 @@ public class UserController {
                     )
             ),
             @ApiResponse(
-                    description = "Error occurred while trying to log in",
+                    responseCode = "400",
+                    description = "Invalid username",
+                    content = @Content(
+                            schema = @Schema(
+                                    implementation = LoginResponseDTO.class
+                            )
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "Invalid password",
                     content = @Content(
                             schema = @Schema(
                                     implementation = LoginResponseDTO.class
