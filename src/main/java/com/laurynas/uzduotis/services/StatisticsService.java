@@ -3,10 +3,12 @@ package com.laurynas.uzduotis.services;
 import com.laurynas.uzduotis.api.dto.response.MessageStatisticsResponseDTO;
 import com.laurynas.uzduotis.api.models.MessageModel;
 import com.laurynas.uzduotis.api.models.UserModel;
+import com.laurynas.uzduotis.other.StatusException;
 import com.laurynas.uzduotis.repository.MessageRepository;
 import com.laurynas.uzduotis.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -19,8 +21,11 @@ public class StatisticsService {
     @Autowired
     private MessageRepository messageRepository;
 
-    public MessageStatisticsResponseDTO getUserMessagesStatistics(String username) {
+    public MessageStatisticsResponseDTO getUserMessagesStatistics(String username) throws StatusException {
         UserModel user = userRepository.findByUsername(username);
+        if(user == null) {
+            throw new StatusException(HttpStatus.NOT_FOUND, "Requested user not found.");
+        }
 
         MessageStatisticsResponseDTO statistics = new MessageStatisticsResponseDTO();
         statistics.setUsername(user.getUsername());

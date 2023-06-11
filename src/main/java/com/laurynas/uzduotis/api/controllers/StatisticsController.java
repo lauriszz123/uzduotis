@@ -68,6 +68,15 @@ public class StatisticsController {
                                     implementation = MessageStatisticsResponseDTO.class
                             )
                     )
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Requested user not found",
+                    content = @Content(
+                            schema = @Schema(
+                                    implementation = MessageStatisticsResponseDTO.class
+                            )
+                    )
             )
     })
     public ResponseEntity<MessageStatisticsResponseDTO> getUserStatistics(@RequestHeader("Authorization") String authorizationHeader, @RequestParam("username") String username) {

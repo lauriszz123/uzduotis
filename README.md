@@ -23,7 +23,14 @@ Vartotojas admin gali:
 
 ## Kurimas produkcijai
 
+***COMPATIBILITY***
+
+***Naudota GNU bash, version 3.2.57(1)-release (x86_64-apple-darwin22) produkcijos MAKEFILE sukurti.***
+
+***Bei MacBook Pro 2017 programuoti projekta.***
+
 Tereikia tik paleisti Makefile kuris yra `root` aplankale
+
 
 ```bash
 make
@@ -45,7 +52,22 @@ Dokumentacija galima rasti paleidus aplikacija per IntelliJ: `http://localhost:8
 
 ## Kaip paleisti programa
 
-Produkcijos programa randasi `dist/jar/uzduotis.jar` ja paleisti galima su komanda:
+Produkcijos programa randasi `dist/jar/uzduotis.jar`.
+
+Pirmiausia patikrinkite ar turite [H2 Database](https://www.h2database.com/), jei turite, reikia ikelti database SQL komandas, jas galite rasti `dist/database/database.sql`:
+
+```bash
+java -cp ./bin/h2*.jar org.h2.tools.RunScript -url "jdbc:h2:file:~/test" -user sa -password "" -script dist/database/database.sql
+```
+
+Tada turite paleisti H2 Database, bukite `h2` aplankale (kitaip sakan `H2 root` aplankale):
+
+```bash
+java -jar ./bin/h2*.jar
+```
+
+Tada galite paleisti programa:
+
 ```bash
 java -jar ./dist/jar/uzduotis.jar
 ```

@@ -20,6 +20,7 @@ prod:
 	mkdir ${dist_folder}/jar
 	mkdir ${dist_folder}/test_report
 	mkdir ${dist_folder}/docs
+	mkdir ${dist_folder}/database
 	
 	mv ${main_src} ${dist_folder}/jar/uzduotis.jar
 	mv ${test_reports}/* ${dist_folder}/test_report/.
@@ -31,3 +32,4 @@ prod:
     mv $(JS_FILE).new $(JS_FILE)
 
 	cp custom.properties ${dist_folder}/jar/application.properties
+	cp database.sql ${dist_folder}/database/.

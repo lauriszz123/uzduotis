@@ -59,6 +59,15 @@ public class MessageController {
                                     implementation = SimpleResponseDTO.class
                             )
                     )
+            ),
+            @ApiResponse(
+                    responseCode = "413",
+                    description = "Message length exceeds 255 character limit",
+                    content = @Content(
+                            schema = @Schema(
+                                    implementation = SimpleResponseDTO.class
+                            )
+                    )
             )
     })
     @PostMapping
@@ -66,11 +75,15 @@ public class MessageController {
         try {
             String token = userService.parseAuthHeader(authorizationHeader);
             if (userService.isLoggedIn(token)) {
-                UserModel user = userService.getUser(token);
-                messageService.createMessage(user.getId(), messageRequest.getMessage());
-                SimpleResponseDTO response = new SimpleResponseDTO();
-                response.setSuccessMessage("Message Created.");
-                return ResponseEntity.ok(response);
+                if(messageRequest.getMessage().length() <= 255) {
+                    UserModel user = userService.getUser(token);
+                    messageService.createMessage(user.getId(), messageRequest.getMessage());
+                    SimpleResponseDTO response = new SimpleResponseDTO();
+                    response.setSuccessMessage("Message Created.");
+                    return ResponseEntity.ok(response);
+                } else {
+                    throw new StatusException(HttpStatus.PAYLOAD_TOO_LARGE, "Message length exceeds 255 character limit.");
+                }
             } else {
                 throw new StatusException(HttpStatus.UNAUTHORIZED, NOT_LOGGED_IN);
             }
