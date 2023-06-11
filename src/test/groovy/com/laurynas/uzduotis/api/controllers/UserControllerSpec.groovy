@@ -1,13 +1,12 @@
 package com.laurynas.uzduotis.api.controllers
 
-import com.laurynas.uzduotis.api.dto.LoginRequestDTO
-import com.laurynas.uzduotis.api.dto.RegisterRequestDTO
-import com.laurynas.uzduotis.api.dto.TokenDTO
+import com.laurynas.uzduotis.api.dto.request.LoginRequestDTO
+import com.laurynas.uzduotis.api.dto.request.RegisterRequestDTO
+
 import com.laurynas.uzduotis.api.dto.UserDTO
 import com.laurynas.uzduotis.api.models.UserModel
 import com.laurynas.uzduotis.other.StatusException
 import com.laurynas.uzduotis.services.UserService
-import org.antlr.v4.runtime.Token
 import spock.lang.Specification
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -35,7 +34,7 @@ class UserControllerSpec extends Specification {
         then:
         response instanceof ResponseEntity
         response.statusCode == HttpStatus.OK
-        response.body == ["User created!"]
+        response.body.successMessage == "User created!"
     }
 
     def "should return 403 forbidden status for non-admin user on createUser"() {
@@ -54,7 +53,7 @@ class UserControllerSpec extends Specification {
         then:
         response instanceof ResponseEntity
         response.statusCode == HttpStatus.FORBIDDEN
-        response.body == "Not an admin."
+        response.body.errorMessage == "Not an admin."
     }
 
     def "should return 401 unauthorized status for not logged in user on createUser"() {
@@ -71,7 +70,7 @@ class UserControllerSpec extends Specification {
         then:
         response instanceof ResponseEntity
         response.statusCode == HttpStatus.UNAUTHORIZED
-        response.body == "Not logged in."
+        response.body.errorMessage == "Not logged in."
     }
 
     def "should delete user and return success response for admin user"() {
@@ -92,7 +91,7 @@ class UserControllerSpec extends Specification {
         then:
         response instanceof ResponseEntity
         response.statusCode == HttpStatus.OK
-        response.body == "Deleted."
+        response.body.successMessage == "Deleted."
     }
 
     def "should return 403 forbidden status for non-admin user on deleteUser"() {
@@ -111,7 +110,7 @@ class UserControllerSpec extends Specification {
         then:
         response instanceof ResponseEntity
         response.statusCode == HttpStatus.FORBIDDEN
-        response.body == "Not an admin."
+        response.body.errorMessage == "Not an admin."
     }
 
     def "should return 401 unauthorized status for not logged in user on deleteUser"() {
@@ -128,7 +127,7 @@ class UserControllerSpec extends Specification {
         then:
         response instanceof ResponseEntity
         response.statusCode == HttpStatus.UNAUTHORIZED
-        response.body == "Not logged in."
+        response.body.errorMessage == "Not logged in."
     }
 
     def "should log in user and return token for valid credentials"() {
@@ -138,15 +137,13 @@ class UserControllerSpec extends Specification {
 
         userService.loginUser(loginRequest.username, loginRequest.password) >> token
 
-        def expectedToken = new TokenDTO(token)
-
         when:
         def response = userController.loginUser(loginRequest)
 
         then:
         response instanceof ResponseEntity
         response.statusCode == HttpStatus.OK
-        response.body.getAt("token") == expectedToken.token
+        response.body.token == token
     }
 
     def "should return 401 unauthorized status for invalid credentials on loginUser"() {
@@ -163,7 +160,7 @@ class UserControllerSpec extends Specification {
         then:
         response instanceof ResponseEntity
         response.statusCode == HttpStatus.UNAUTHORIZED
-        response.body == "Invalid credentials."
+        response.body.errorMessage == "Invalid credentials."
     }
 
     def "should log out user and return success response"() {
@@ -179,13 +176,17 @@ class UserControllerSpec extends Specification {
         then:
         response instanceof ResponseEntity
         response.statusCode == HttpStatus.OK
-        response.body == "Logged out."
+        response.body.successMessage == "Logged out."
     }
 
     def "should return 401 unauthorized status for not logged in user on logoutUser"() {
         given:
         def authorizationHeader = "Bearer token"
         def token = "token"
+
+        userService.parseAuthHeader(authorizationHeader) >> {
+            return token
+        }
 
         userService.logoutUser(token) >> {
             throw new StatusException(HttpStatus.UNAUTHORIZED, "Not logged in.")
@@ -197,7 +198,7 @@ class UserControllerSpec extends Specification {
         then:
         response instanceof ResponseEntity
         response.statusCode == HttpStatus.UNAUTHORIZED
-        response.body == "Not logged in."
+        response.body.errorMessage == "Not logged in."
     }
 
     def "should return all users for admin user"() {
@@ -228,7 +229,7 @@ class UserControllerSpec extends Specification {
         then:
         response instanceof ResponseEntity
         response.statusCode == HttpStatus.OK
-        response.body.toString() == expectedResponse.toString()
+        response.body.users.toString() == expectedResponse.toString()
     }
 
     def "should return 403 forbidden status for non-admin user on getAllUsers"() {
@@ -247,7 +248,7 @@ class UserControllerSpec extends Specification {
         then:
         response instanceof ResponseEntity
         response.statusCode == HttpStatus.FORBIDDEN
-        response.body == "Not an admin."
+        response.body.errorMessage == "Not an admin."
     }
 
     def "should return 401 unauthorized status for not logged in user on getAllUsers"() {
@@ -264,6 +265,6 @@ class UserControllerSpec extends Specification {
         then:
         response instanceof ResponseEntity
         response.statusCode == HttpStatus.UNAUTHORIZED
-        response.body == "Not logged in."
+        response.body.errorMessage == "Not logged in."
     }
 }

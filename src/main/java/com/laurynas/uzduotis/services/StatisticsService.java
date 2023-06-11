@@ -1,7 +1,6 @@
 package com.laurynas.uzduotis.services;
 
-import com.laurynas.uzduotis.api.dto.MessageResponseDTO;
-import com.laurynas.uzduotis.api.dto.MessageStatisticsDTO;
+import com.laurynas.uzduotis.api.dto.response.MessageStatisticsResponseDTO;
 import com.laurynas.uzduotis.api.models.MessageModel;
 import com.laurynas.uzduotis.api.models.UserModel;
 import com.laurynas.uzduotis.repository.MessageRepository;
@@ -20,10 +19,10 @@ public class StatisticsService {
     @Autowired
     private MessageRepository messageRepository;
 
-    public MessageStatisticsDTO getUserMessagesStatistics(String username) {
+    public MessageStatisticsResponseDTO getUserMessagesStatistics(String username) {
         UserModel user = userRepository.findByUsername(username);
 
-        MessageStatisticsDTO statistics = new MessageStatisticsDTO();
+        MessageStatisticsResponseDTO statistics = new MessageStatisticsResponseDTO();
         statistics.setUsername(user.getUsername());
 
         List<MessageModel> messages = messageRepository.findByUserId(user.getId());

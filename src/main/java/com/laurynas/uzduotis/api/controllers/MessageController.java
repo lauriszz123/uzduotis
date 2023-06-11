@@ -1,7 +1,9 @@
 package com.laurynas.uzduotis.api.controllers;
 
-import com.laurynas.uzduotis.api.dto.MessageRequestDTO;
-import com.laurynas.uzduotis.api.dto.MessageResponseDTO;
+import com.laurynas.uzduotis.api.dto.request.MessageRequestDTO;
+import com.laurynas.uzduotis.api.dto.MessageDTO;
+import com.laurynas.uzduotis.api.dto.response.GetAllMessagesResponseDTO;
+import com.laurynas.uzduotis.api.dto.response.SimpleResponseDTO;
 import com.laurynas.uzduotis.api.models.UserModel;
 import com.laurynas.uzduotis.other.StatusException;
 import com.laurynas.uzduotis.services.UserService;
@@ -17,9 +19,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Controller
 @RequestMapping("/api/v1/message")
@@ -48,7 +47,7 @@ public class MessageController {
                     description = "Message created",
                     content = @Content(
                             schema = @Schema(
-                                    implementation = String.class
+                                    implementation = SimpleResponseDTO.class
                             )
                     )
             ),
@@ -57,24 +56,28 @@ public class MessageController {
                     description = "Not logged in, Authorization does not meet the 36 character requirement or Invalid authorization token",
                     content = @Content(
                             schema = @Schema(
-                                    implementation = String.class
+                                    implementation = SimpleResponseDTO.class
                             )
                     )
             )
     })
     @PostMapping
-    public ResponseEntity<?> createMessage(@RequestHeader("Authorization") String authorizationHeader, @RequestBody MessageRequestDTO messageRequest) {
+    public ResponseEntity<SimpleResponseDTO> createMessage(@RequestHeader("Authorization") String authorizationHeader, @RequestBody MessageRequestDTO messageRequest) {
         try {
             String token = userService.parseAuthHeader(authorizationHeader);
             if (userService.isLoggedIn(token)) {
                 UserModel user = userService.getUser(token);
                 messageService.createMessage(user.getId(), messageRequest.getMessage());
-                return ResponseEntity.ok(List.of("Message Created."));
+                SimpleResponseDTO response = new SimpleResponseDTO();
+                response.setSuccessMessage("Message Created.");
+                return ResponseEntity.ok(response);
             } else {
                 throw new StatusException(HttpStatus.UNAUTHORIZED, NOT_LOGGED_IN);
             }
         } catch (StatusException e) {
-            return ResponseEntity.status(e.getStatus()).body(e.getMessage());
+            SimpleResponseDTO response = new SimpleResponseDTO();
+            response.setErrorMessage(e.getMessage());
+            return ResponseEntity.status(e.getStatus()).body(response);
         }
     }
 
@@ -83,41 +86,43 @@ public class MessageController {
             summary = "Get all messages"
     )
     @ApiResponses(value = {
-            @ApiResponse(
-                    responseCode = "200",
-                    description = "Successfully retrieved messages",
-                    content = @Content(
-                            schema = @Schema(
-                                    implementation = MessageResponseDTO.class
-                            )
-                    )
-            ),
-            @ApiResponse(
-                    responseCode = "401",
-                    description = "Not logged in, Authorization does not meet the 36 character requirement or Invalid authorization token",
-                    content = @Content(
+        @ApiResponse(
+                responseCode = "200",
+                description = "Successfully retrieved messages",
+                content = @Content(
                         schema = @Schema(
-                                implementation = String.class
+                                implementation = GetAllMessagesResponseDTO.class
                         )
                 )
+        ),
+        @ApiResponse(
+            responseCode = "401",
+            description = "Not logged in, Authorization does not meet the 36 character requirement or Invalid authorization token",
+            content = @Content(
+                schema = @Schema(
+                        implementation = GetAllMessagesResponseDTO.class
+                )
             )
+        )
     })
-    public ResponseEntity<?> getMessages(@RequestHeader("Authorization") String authorizationHeader) {
+    public ResponseEntity<GetAllMessagesResponseDTO> getMessages(@RequestHeader("Authorization") String authorizationHeader) {
         try {
             String token = userService.parseAuthHeader(authorizationHeader);
             if (userService.isLoggedIn(token)) {
-                List<MessageResponseDTO> messages = new ArrayList<>();
+                GetAllMessagesResponseDTO response = new GetAllMessagesResponseDTO();
                 messageService.getAllMessages().forEach(message -> {
                     UserModel user = userService.getUser(message.getUserId());
-                    MessageResponseDTO response = new MessageResponseDTO(user.getUsername(), message.getMessage(), message.getTimestamp());
-                    messages.add(response);
+                    MessageDTO messageDTO = new MessageDTO(user.getUsername(), message.getMessage(), message.getTimestamp());
+                    response.addMessage(messageDTO);
                 });
-                return ResponseEntity.ok(messages);
+                return ResponseEntity.ok(response);
             } else {
                 throw new StatusException(HttpStatus.UNAUTHORIZED, NOT_LOGGED_IN);
             }
         } catch (StatusException e) {
-            return ResponseEntity.status(e.getStatus()).body(e.getMessage());
+            GetAllMessagesResponseDTO response = new GetAllMessagesResponseDTO();
+            response.setErrorMessage(e.getMessage());
+            return ResponseEntity.status(e.getStatus()).body(response);
         }
     }
 }

@@ -3,7 +3,7 @@ package com.laurynas.uzduotis.api.controllers
 import com.laurynas.uzduotis.services.StatisticsService
 import com.laurynas.uzduotis.services.UserService
 import com.laurynas.uzduotis.api.models.UserModel
-import com.laurynas.uzduotis.api.dto.MessageStatisticsDTO
+import com.laurynas.uzduotis.api.dto.response.MessageStatisticsResponseDTO
 import spock.lang.Specification
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -27,7 +27,7 @@ class StatisticsControllerSpec extends Specification {
         userService.isLoggedIn(token) >> true
         userService.getUser(token) >> user
 
-        def expectedStatistics = Mock(MessageStatisticsDTO)
+        def expectedStatistics = Mock(MessageStatisticsResponseDTO)
 
         statisticsService.getUserMessagesStatistics(username) >> expectedStatistics
 
@@ -56,7 +56,7 @@ class StatisticsControllerSpec extends Specification {
         then:
         response instanceof ResponseEntity
         response.statusCode == HttpStatus.UNAUTHORIZED
-        response.body == "Not logged in."
+        response.body.errorMessage == "Not logged in."
     }
 
     def "should return 403 forbidden status for non-admin user"() {
@@ -78,6 +78,6 @@ class StatisticsControllerSpec extends Specification {
         then:
         response instanceof ResponseEntity
         response.statusCode == HttpStatus.FORBIDDEN
-        response.body == "Not an admin."
+        response.body.errorMessage == "Not an admin."
     }
 }

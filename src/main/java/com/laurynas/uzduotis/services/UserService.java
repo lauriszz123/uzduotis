@@ -24,7 +24,7 @@ public class UserService {
     private SessionRepository sessionRepository;
 
     public String parseAuthHeader(String authHeader) throws StatusException {
-        if (authHeader.startsWith("Bearer") && authHeader != null) {
+        if (authHeader.startsWith("Bearer")) {
             String token = authHeader.substring(authHeader.indexOf(" ") + 1);
             if (token.length() == 36) {
                 return token;
@@ -78,7 +78,6 @@ public class UserService {
         }
 
         sessionRepository.delete(session);
-        System.out.println( "Deleted Session: " + session.getToken() );
     }
 
     public boolean isLoggedIn(String token) {

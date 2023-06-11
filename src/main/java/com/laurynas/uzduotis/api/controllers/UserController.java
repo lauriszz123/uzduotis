@@ -1,6 +1,11 @@
 package com.laurynas.uzduotis.api.controllers;
 
 import com.laurynas.uzduotis.api.dto.*;
+import com.laurynas.uzduotis.api.dto.request.LoginRequestDTO;
+import com.laurynas.uzduotis.api.dto.request.RegisterRequestDTO;
+import com.laurynas.uzduotis.api.dto.response.GetAllUsersResponseDTO;
+import com.laurynas.uzduotis.api.dto.response.LoginResponseDTO;
+import com.laurynas.uzduotis.api.dto.response.SimpleResponseDTO;
 import com.laurynas.uzduotis.api.models.UserModel;
 import com.laurynas.uzduotis.other.StatusException;
 import com.laurynas.uzduotis.services.UserService;
@@ -43,7 +48,7 @@ public class UserController {
                     description = "Successfully created",
                     content = @Content(
                             schema = @Schema(
-                                    implementation = String.class
+                                    implementation = SimpleResponseDTO.class
                             )
                     )
             ),
@@ -52,7 +57,7 @@ public class UserController {
                     description = "Not logged in, Authorization does not meet the 36 character requirement or Invalid authorization token",
                     content = @Content(
                             schema = @Schema(
-                                    implementation = String.class
+                                    implementation = SimpleResponseDTO.class
                             )
                     )
             ),
@@ -61,20 +66,22 @@ public class UserController {
                     description = "Not an admin",
                     content = @Content(
                             schema = @Schema(
-                                    implementation = String.class
+                                    implementation = SimpleResponseDTO.class
                             )
                     )
             )
     })
     @PostMapping
-    public ResponseEntity<?> createUser(@RequestHeader("Authorization") String authorizationHeader, @RequestBody RegisterRequestDTO registerRequest) {
+    public ResponseEntity<SimpleResponseDTO> createUser(@RequestHeader("Authorization") String authorizationHeader, @RequestBody RegisterRequestDTO registerRequest) {
         try {
             String token = authorizationHeader.substring(authorizationHeader.indexOf(" ") + 1);
             if (userService.isLoggedIn(token)) {
                 UserModel user = userService.getUser(token);
                 if (user.isAdmin()) {
                     userService.createUser(registerRequest.getUsername(), registerRequest.getPassword(), registerRequest.isAdmin());
-                    return ResponseEntity.ok(List.of("User created!"));
+                    SimpleResponseDTO response = new SimpleResponseDTO();
+                    response.setSuccessMessage("User created!");
+                    return ResponseEntity.ok(response);
                 } else {
                     throw new StatusException(HttpStatus.FORBIDDEN, NOT_AN_ADMIN);
                 }
@@ -82,7 +89,9 @@ public class UserController {
                 throw new StatusException(HttpStatus.UNAUTHORIZED, NOT_LOGGED_IN);
             }
         } catch (StatusException e) {
-            return ResponseEntity.status(e.getStatus()).body(e.getMessage());
+            SimpleResponseDTO response = new SimpleResponseDTO();
+            response.setErrorMessage(e.getMessage());
+            return ResponseEntity.status(e.getStatus()).body(response);
         }
     }
 
@@ -95,7 +104,7 @@ public class UserController {
                     description = "Successfully deleted",
                     content = @Content(
                             schema = @Schema(
-                                    implementation = String.class
+                                    implementation = SimpleResponseDTO.class
                             )
                     )
             ),
@@ -104,7 +113,7 @@ public class UserController {
                     description = "Not logged in, Authorization does not meet the 36 character requirement or Invalid authorization token",
                     content = @Content(
                             schema = @Schema(
-                                    implementation = String.class
+                                    implementation = SimpleResponseDTO.class
                             )
                     )
             ),
@@ -113,19 +122,21 @@ public class UserController {
                     description = "Not an admin",
                     content = @Content(
                             schema = @Schema(
-                                    implementation = String.class
+                                    implementation = SimpleResponseDTO.class
                             )
                     )
             )
     })
     @DeleteMapping
-    public ResponseEntity<String> deleteUser(@RequestHeader("Authorization") String authorizationHeader, @RequestParam("username") String username) {
+    public ResponseEntity<SimpleResponseDTO> deleteUser(@RequestHeader("Authorization") String authorizationHeader, @RequestParam("username") String username) {
         try {
             String token = authorizationHeader.substring(authorizationHeader.indexOf(" ") + 1);
             if (userService.isLoggedIn(token)) {
                 if (userService.getUser(token).isAdmin()) {
                     userService.deleteUser(username);
-                    return ResponseEntity.ok("Deleted.");
+                    SimpleResponseDTO response = new SimpleResponseDTO();
+                    response.setSuccessMessage("Deleted.");
+                    return ResponseEntity.ok(response);
                 } else {
                     throw new StatusException(HttpStatus.FORBIDDEN, NOT_AN_ADMIN);
                 }
@@ -133,7 +144,9 @@ public class UserController {
                 throw new StatusException(HttpStatus.UNAUTHORIZED, NOT_LOGGED_IN);
             }
         } catch (StatusException e) {
-            return ResponseEntity.status(e.getStatus()).body(e.getMessage());
+            SimpleResponseDTO response = new SimpleResponseDTO();
+            response.setErrorMessage(e.getMessage());
+            return ResponseEntity.status(e.getStatus()).body(response);
         }
     }
 
@@ -146,26 +159,30 @@ public class UserController {
                     description = "Successfully logged in",
                     content = @Content(
                             schema = @Schema(
-                                    implementation = TokenDTO.class
+                                    implementation = LoginResponseDTO.class
                             )
                     )
             ),
             @ApiResponse(
-                    description = "Error occured while trying to log in",
+                    description = "Error occurred while trying to log in",
                     content = @Content(
                             schema = @Schema(
-                                    implementation = String.class
+                                    implementation = LoginResponseDTO.class
                             )
                     )
             )
     })
     @PostMapping("/login")
-    public ResponseEntity<?> loginUser(@RequestBody LoginRequestDTO loginRequest) {
+    public ResponseEntity<LoginResponseDTO> loginUser(@RequestBody LoginRequestDTO loginRequest) {
         try {
             String token = userService.loginUser(loginRequest.getUsername(), loginRequest.getPassword());
-            return ResponseEntity.ok(new TokenDTO(token));
+            LoginResponseDTO response = new LoginResponseDTO();
+            response.setToken(token);
+            return ResponseEntity.ok(response);
         } catch (StatusException e) {
-            return ResponseEntity.status(e.getStatus()).body(e.getMessage());
+            LoginResponseDTO response = new LoginResponseDTO();
+            response.setErrorMessage(e.getMessage());
+            return ResponseEntity.status(e.getStatus()).body(response);
         }
     }
 
@@ -178,7 +195,7 @@ public class UserController {
                     description = "Successfully logged out",
                     content = @Content(
                             schema = @Schema(
-                                    implementation = TokenDTO.class
+                                    implementation = SimpleResponseDTO.class
                             )
                     )
             ),
@@ -187,7 +204,7 @@ public class UserController {
                     description = "Authorization does not meet the 36 character requirement or Invalid authorization token",
                     content = @Content(
                             schema = @Schema(
-                                    implementation = String.class
+                                    implementation = SimpleResponseDTO.class
                             )
                     )
             ),
@@ -196,19 +213,23 @@ public class UserController {
                     description = "Session not found",
                     content = @Content(
                             schema = @Schema(
-                                    implementation = String.class
+                                    implementation = SimpleResponseDTO.class
                             )
                     )
             )
     })
     @PostMapping("/logout")
-    public ResponseEntity<?> logoutUser(@RequestHeader("Authorization") String authorizationHeader) {
+    public ResponseEntity<SimpleResponseDTO> logoutUser(@RequestHeader("Authorization") String authorizationHeader) {
         try {
-            String token = authorizationHeader.substring(authorizationHeader.indexOf(" ") + 1);
+            String token = userService.parseAuthHeader(authorizationHeader);
             userService.logoutUser(token);
-            return ResponseEntity.status(HttpStatus.OK).body("Logged out.");
+            SimpleResponseDTO response = new SimpleResponseDTO();
+            response.setSuccessMessage("Logged out.");
+            return ResponseEntity.status(HttpStatus.OK).body(response);
         } catch (StatusException e) {
-            return ResponseEntity.status(e.getStatus()).body(e.getMessage());
+            SimpleResponseDTO response = new SimpleResponseDTO();
+            response.setErrorMessage(e.getMessage());
+            return ResponseEntity.status(e.getStatus()).body(response);
         }
     }
 
@@ -221,8 +242,7 @@ public class UserController {
                     description = "Successfully fetched all users",
                     content = @Content(
                             schema = @Schema(
-                                    type = "array",
-                                    example = "[ { \"username\": \"simpleUsername\", \"admin\": false }, { \"username\": \"adminUser\", \"admin\": true } ]"
+                                    implementation = GetAllUsersResponseDTO.class
                             )
                     )
             ),
@@ -231,7 +251,7 @@ public class UserController {
                     description = "Not logged in, Authorization does not meet the 36 character requirement or Invalid authorization token",
                     content = @Content(
                             schema = @Schema(
-                                    implementation = String.class
+                                    implementation = GetAllUsersResponseDTO.class
                             )
                     )
             ),
@@ -240,13 +260,13 @@ public class UserController {
                     description = "Not an admin",
                     content = @Content(
                             schema = @Schema(
-                                    implementation = String.class
+                                    implementation = GetAllUsersResponseDTO.class
                             )
                     )
             )
     })
     @GetMapping("/all")
-    public ResponseEntity<?> getAllUsers(@RequestHeader("Authorization") String authorizationHeader) {
+    public ResponseEntity<GetAllUsersResponseDTO> getAllUsers(@RequestHeader("Authorization") String authorizationHeader) {
         try {
             String token = userService.parseAuthHeader(authorizationHeader);
             if (userService.isLoggedIn(token)) {
@@ -256,7 +276,10 @@ public class UserController {
 
                     users.forEach(user -> returnedUsers.add(new UserDTO(user.getUsername(), user.isAdmin())));
 
-                    return ResponseEntity.ok(returnedUsers);
+                    GetAllUsersResponseDTO response = new GetAllUsersResponseDTO();
+                    response.setUsers(returnedUsers);
+
+                    return ResponseEntity.ok(response);
                 } else {
                     throw new StatusException(HttpStatus.FORBIDDEN, NOT_AN_ADMIN);
                 }
@@ -264,7 +287,9 @@ public class UserController {
                 throw new StatusException(HttpStatus.UNAUTHORIZED, NOT_LOGGED_IN);
             }
         } catch (StatusException e) {
-            return ResponseEntity.status(e.getStatus()).body(e.getMessage());
+            GetAllUsersResponseDTO response = new GetAllUsersResponseDTO();
+            response.setErrorMessage(e.getMessage());
+            return ResponseEntity.status(e.getStatus()).body(response);
         }
     }
 }

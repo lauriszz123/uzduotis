@@ -1,7 +1,7 @@
 package com.laurynas.uzduotis.api.controllers
 
-import com.laurynas.uzduotis.api.dto.MessageRequestDTO
-import com.laurynas.uzduotis.api.dto.MessageResponseDTO
+import com.laurynas.uzduotis.api.dto.request.MessageRequestDTO
+import com.laurynas.uzduotis.api.dto.MessageDTO
 import com.laurynas.uzduotis.api.models.MessageModel
 import com.laurynas.uzduotis.api.models.UserModel
 import com.laurynas.uzduotis.services.MessageService
@@ -36,7 +36,7 @@ class MessageControllerSpec extends Specification {
         then:
         response instanceof ResponseEntity
         response.statusCode == HttpStatus.OK
-        response.body == [createdMessage]
+        response.body.successMessage == createdMessage
     }
 
     def "should return 401 unauthorized status for not logged in user on createMessage"() {
@@ -54,7 +54,7 @@ class MessageControllerSpec extends Specification {
         then:
         response instanceof ResponseEntity
         response.statusCode == HttpStatus.UNAUTHORIZED
-        response.body == "Not logged in."
+        response.body.errorMessage == "Not logged in."
     }
 
     def "should return messages and success response"() {
@@ -80,12 +80,12 @@ class MessageControllerSpec extends Specification {
         then:
         response instanceof ResponseEntity
         response.statusCode == HttpStatus.OK
-        response.body.size() == 2
-        response.body[0] instanceof MessageResponseDTO
-        response.body[0].username == "user1"
-        response.body[0].message == "Hello"
-        response.body[1].username == "user2"
-        response.body[1].message == "World"
+        response.body.messages.size() == 2
+        response.body.messages[0] instanceof MessageDTO
+        response.body.messages[0].username == "user1"
+        response.body.messages[0].message == "Hello"
+        response.body.messages[1].username == "user2"
+        response.body.messages[1].message == "World"
     }
 
     def "should return 409 conflict status for not logged in user on getMessages"() {
@@ -102,6 +102,6 @@ class MessageControllerSpec extends Specification {
         then:
         response instanceof ResponseEntity
         response.statusCode == HttpStatus.UNAUTHORIZED
-        response.body == "Not logged in."
+        response.body.errorMessage == "Not logged in."
     }
 }

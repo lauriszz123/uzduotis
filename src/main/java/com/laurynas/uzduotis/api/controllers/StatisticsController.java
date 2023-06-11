@@ -1,7 +1,6 @@
 package com.laurynas.uzduotis.api.controllers;
 
-import com.laurynas.uzduotis.api.dto.MessageResponseDTO;
-import com.laurynas.uzduotis.api.dto.MessageStatisticsDTO;
+import com.laurynas.uzduotis.api.dto.response.MessageStatisticsResponseDTO;
 import com.laurynas.uzduotis.other.StatusException;
 import com.laurynas.uzduotis.services.UserService;
 import com.laurynas.uzduotis.services.StatisticsService;
@@ -48,7 +47,7 @@ public class StatisticsController {
                     description = "Successfully retrieved statistics",
                     content = @Content(
                             schema = @Schema(
-                                    implementation = MessageStatisticsDTO.class
+                                    implementation = MessageStatisticsResponseDTO.class
                             )
                     )
             ),
@@ -57,7 +56,7 @@ public class StatisticsController {
                     description = "Not logged in, Authorization does not meet the 36 character requirement or Invalid authorization token",
                     content = @Content(
                             schema = @Schema(
-                                    implementation = String.class
+                                    implementation = MessageStatisticsResponseDTO.class
                             )
                     )
             ),
@@ -66,12 +65,12 @@ public class StatisticsController {
                     description = "Not an admin",
                     content = @Content(
                             schema = @Schema(
-                                    implementation = String.class
+                                    implementation = MessageStatisticsResponseDTO.class
                             )
                     )
             )
     })
-    public ResponseEntity<?> getUserStatistics(@RequestHeader("Authorization") String authorizationHeader, @RequestParam("username") String username) {
+    public ResponseEntity<MessageStatisticsResponseDTO> getUserStatistics(@RequestHeader("Authorization") String authorizationHeader, @RequestParam("username") String username) {
         try {
             String token = userService.parseAuthHeader(authorizationHeader);
             if (userService.isLoggedIn(token)) {
@@ -84,7 +83,9 @@ public class StatisticsController {
                 throw new StatusException(HttpStatus.UNAUTHORIZED, NOT_LOGGED_IN);
             }
         } catch (StatusException e) {
-            return ResponseEntity.status(e.getStatus()).body(e.getMessage());
+            MessageStatisticsResponseDTO response = new MessageStatisticsResponseDTO();
+            response.setErrorMessage(e.getMessage());
+            return ResponseEntity.status(e.getStatus()).body(response);
         }
     }
 }

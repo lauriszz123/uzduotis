@@ -29,3 +29,5 @@ prod:
     OPENAPI_CONTENT_ESCAPED=$$(echo "$$OPENAPI_CONTENT" | sed 's/\//\\\//g'); \
     sed "s/SPEC_FILE/$$OPENAPI_CONTENT_ESCAPED/g" $(JS_FILE) > $(JS_FILE).new && \
     mv $(JS_FILE).new $(JS_FILE)
+
+	cp custom.properties ${dist_folder}/jar/application.properties
